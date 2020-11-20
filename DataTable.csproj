@@ -1,0 +1,92 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{BACA435A-26D8-4324-9267-21F7E0638AFF}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>DataTable</RootNamespace>
+    <AssemblyName>DataTable</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Windows" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.XML" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ItemsViewer\ItemsViewer.cs" />
+    <Compile Include="ItemsViewer\ItemsViewerSelectable.cs" />
+    <Compile Include="ItemsViewer\Collection\CollectionContainer.cs" />
+    <Compile Include="ItemsViewer\Collection\FilterManager.cs" />
+    <Compile Include="ItemsViewer\Collection\SortProperties.cs" />
+    <Compile Include="ItemsViewer\Collection\ViewCollection.cs" />
+    <Compile Include="ItemsViewer\Collection\ViewCollectionIList.cs" />
+    <Compile Include="ItemsViewer\DefaultItem.cs" />
+    <Compile Include="ItemsViewer\Test.cs" />
+    <Compile Include="DataTable\RowMenu.cs" />
+    <Compile Include="DataTable\Table.cs" />
+    <Compile Include="DataTable\TableStyle.cs" />
+    <Compile Include="ItemsViewer\IChildCollection.cs" />
+    <Compile Include="ItemsViewer\LevelToWidthConverter.cs" />
+    <Compile Include="ItemsViewer\TypeManager.cs" />
+    <Compile Include="ItemsViewer\ViewItem.cs" />
+    <Compile Include="ItemsViewer\ViewItemCollection.cs" />
+    <Compile Include="ObservableList.cs" />
+    <Compile Include="DataTable\CellInfo.cs" />
+    <Compile Include="DataTable\ClipboardData.cs" />
+    <Compile Include="DataTable\ColumnSplitter.cs" />
+    <Compile Include="DataTable\RowControl.cs" />
+    <Compile Include="DataTable\CopyOptions.cs" />
+    <Compile Include="DataTable\DragDropOptions.cs" />
+    <Compile Include="DataTable\EditBox.cs" />
+    <Compile Include="DataTable\Header\HeaderCellSelector.cs" />
+    <Compile Include="DataTable\Header\FilterBrushConverter.cs" />
+    <Compile Include="DataTable\Header\FilterItem.cs" />
+    <Compile Include="DataTable\Header\HeaderCell.cs" />
+    <Compile Include="DataTable\Header\SortIconConverter.cs" />
+    <Compile Include="DataTable\ITableRow.cs" />
+    <Compile Include="DataTable\PasteOptions.cs" />
+    <Compile Include="DataTable\SearchControl.cs" />
+    <Compile Include="DataTable\TableEditor.cs" />
+    <Compile Include="DataTable\TableItemManager.cs" />
+    <Compile Include="DataTable\UndoRedoManager.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Key.snk" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
