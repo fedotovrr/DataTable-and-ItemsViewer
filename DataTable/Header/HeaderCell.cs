@@ -15,6 +15,7 @@ using System.Windows.Controls.Primitives;
 using System.Collections.ObjectModel;
 using System.Collections;
 using ItemsViewer.Collection;
+using System.Threading;
 
 namespace DataTable.Header
 {
@@ -46,6 +47,8 @@ namespace DataTable.Header
             this.Column = column;
             Parent = parent;
 
+            string cn = Thread.CurrentThread.CurrentUICulture.Name;
+
             //текст ячейки
             TextBlock headerText = new TextBlock { Text = text, VerticalAlignment = VerticalAlignment.Center, Padding = new Thickness(3, 0, 3, 0), TextTrimming = TextTrimming.CharacterEllipsis, TextAlignment = TextAlignment.Center };
             headerText.SetBinding(TextBlock.TextProperty, new Binding(nameof(Text)) { Source = this });
@@ -53,7 +56,7 @@ namespace DataTable.Header
             Grid.SetColumn(headerText, 1);
             
             //иконка сортировки
-            Path sortIcon = new Path() { VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 0, 3, 0), ToolTip = "Визуальная сортировка (порядок элементов сохраняется)" };
+            Path sortIcon = new Path() { VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 0, 3, 0), ToolTip = cn == "ru-RU" ? "Визуальная сортировка (порядок элементов сохраняется)" : "Visual sort" };
             sortIcon.SetBinding(Path.FillProperty, new Binding(nameof(Table.IconColor)) { Source = Parent });
             Grid.SetColumn(sortIcon, 2);
             MultiBinding multiBinding = new MultiBinding();
@@ -64,7 +67,7 @@ namespace DataTable.Header
             sortIcon.SetBinding(Path.DataProperty, multiBinding);
 
             //иконка фильтра
-            Path filterIcon = new Path() { Margin = new Thickness(3, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center, Data = Geometry.Parse("M 0,0 14,0 9,5 9,12 5,10 5,5"), ToolTip = "Визуальный фильтр" };
+            Path filterIcon = new Path() { Margin = new Thickness(3, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center, Data = Geometry.Parse("M 0,0 14,0 9,5 9,12 5,10 5,5"), ToolTip = cn == "ru-RU" ? "Визуальный фильтр" : "Visual filter" };
             filterIcon.SetBinding(Path.FillProperty, new Binding(nameof(FilterManager.Column)) { Converter = new FilterBrushConverter(Parent, column), Source = Parent.ItemsCollection?.Filter });
 
             Border filterBorder = new Border() { Width = 20, Background = new SolidColorBrush(new Color()), Cursor = Cursors.Hand };
@@ -73,11 +76,11 @@ namespace DataTable.Header
             filterBorder.MouseDown += ButtonFilter_Click;
 
             //панель фильтра
-            TextBlock headerPanelText = new TextBlock() { Text = "Фильтр", HorizontalAlignment = HorizontalAlignment.Center };
+            TextBlock headerPanelText = new TextBlock() { Text = cn == "ru-RU" ? "Фильтр" : "Filter", HorizontalAlignment = HorizontalAlignment.Center };
             headerPanelText.SetBinding(TextBlock.ForegroundProperty, new Binding(nameof(Table.HeaderForeground)) { Source = Parent });
 
             newFilterText = new TextBox();
-            Button addValue = new Button() { Content = "Добавить", Width = 70, Margin = new Thickness(4,0,0,0) };
+            Button addValue = new Button() { Content = cn == "ru-RU" ? "Добавить" : "Add", Width = 70, Margin = new Thickness(4,0,0,0) };
             Grid.SetColumn(addValue, 1);
             addValue.Click += AddValue_Click;
             Grid newValueGrid = new Grid() { Height = 22, Margin = new Thickness(0, 8, 0, 4) };

@@ -12,6 +12,8 @@ using ItemsViewer;
 using System.Windows.Shapes;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Globalization;
+using System.Threading;
 
 namespace DataTable
 {
@@ -62,8 +64,10 @@ namespace DataTable
             Grid.SetColumn(stackPanel, 1);
             grid.Children.Add(stackPanel);
 
+            string cn = Thread.CurrentThread.CurrentUICulture.Name;
+
             Grid g1 = new Grid();
-            TextBlock hb = new TextBlock() { Text = "Поиск и замена" };
+            TextBlock hb = new TextBlock() { Text = cn == "ru-RU" ? "Поиск и замена" : "Search and Replace" };
             Path p = new Path() { Stretch = Stretch.None, Data = Geometry.Parse("M0,0 L8,8 M0,8 L8,0"), VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center, StrokeThickness = 1.5 };
             Border cb = new Border() { HorizontalAlignment = HorizontalAlignment.Right, Focusable = false, Background = new SolidColorBrush(new Color()), Child = p };
             Setter setterA = new Setter() { Property = Border.BorderBrushProperty, Value = Table.IconColor };
@@ -81,9 +85,9 @@ namespace DataTable
             g2.ColumnDefinitions.Add(new ColumnDefinition() { MaxWidth = 45 });
             g2.ColumnDefinitions.Add(new ColumnDefinition());
             g2.ColumnDefinitions.Add(new ColumnDefinition(){ MaxWidth = 70 });
-            TextBlock pt = new TextBlock() { Text = "Поиск" };
+            TextBlock pt = new TextBlock() { Text = cn == "ru-RU" ? "Поиск" : "Search" };
             SearchText = new TextBox();
-            Button pb = new Button() { Content = "Найти", Margin = new Thickness(5,0,0,0) };
+            Button pb = new Button() { Content = cn == "ru-RU" ? "Найти" : "Find", Margin = new Thickness(5,0,0,0) };
             pb.Click += SearchButton_Click;
             Grid.SetColumn(SearchText, 1);
             Grid.SetColumn(pb, 2);
@@ -96,9 +100,9 @@ namespace DataTable
             g3.ColumnDefinitions.Add(new ColumnDefinition() { MaxWidth = 45 });
             g3.ColumnDefinitions.Add(new ColumnDefinition());
             g3.ColumnDefinitions.Add(new ColumnDefinition() { MaxWidth = 70 });
-            TextBlock rt = new TextBlock() { Text = "Замена" };
+            TextBlock rt = new TextBlock() { Text = cn == "ru-RU" ? "Замена" : "Replacement" };
             ReplaceText = new TextBox();
-            Button rb = new Button() { Content = "Заменить", Margin = new Thickness(5, 0, 0, 0) };
+            Button rb = new Button() { Content = cn == "ru-RU" ? "Заменить" : "Replace", Margin = new Thickness(5, 0, 0, 0) };
             rb.Click += ReplaceButton_Click;
             Grid.SetColumn(ReplaceText, 1);
             Grid.SetColumn(rb, 2);
@@ -106,7 +110,7 @@ namespace DataTable
             g3.Children.Add(ReplaceText);
             g3.Children.Add(rb);
 
-            Reg = new CheckBox() { Content = "Учитывать регистр", Margin = new Thickness(0, 5, 0, 0) };
+            Reg = new CheckBox() { Content = cn == "ru-RU" ? "Учитывать регистр" : "Match case", Margin = new Thickness(0, 5, 0, 0) };
 
             stackPanel.Children.Add(g1);
             stackPanel.Children.Add(g2);
