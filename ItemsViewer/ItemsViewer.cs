@@ -368,7 +368,6 @@ namespace ItemsViewer
                             sizeViewTopChild = 1 - ScrollOffset;
                             PanelOffset = 0 - sizeTopChild * ScrollOffset;
                             height += PanelOffset;
-                            System.Diagnostics.Debug.WriteLine(ScrollOffset);
                         }
                     }
                 }
