@@ -250,8 +250,12 @@ namespace ItemsViewer
         internal void Refresh()
         {
             //Dispatcher.Invoke(new Action(() => RefreshMethod(0)));
-            RefreshDelay.Enabled = false;
-            RefreshDelay.Enabled = true;
+            try
+            {
+                RefreshDelay.Enabled = false;
+                RefreshDelay.Enabled = true;
+            }
+            catch (Exception) { }
         }
 
         private void RefreshTimer_Elapsed(object sender, ElapsedEventArgs e)
@@ -350,10 +354,11 @@ namespace ItemsViewer
                     }
                     else if (PanelOffset < 0)
                     {
-                        if (sizeTopChild == 0 || (height - PanelOffset - maxHeight) / sizeTopChild <= -1)
+                        if (sizeTopChild == 0 || (height - PanelOffset - maxHeight) / sizeTopChild < 0)
                         {
                             ScrollOffset = 0;
                             PanelOffset = 0;
+                            sizeViewTopChild = 1;
                         }
                         else
                         {
@@ -363,6 +368,7 @@ namespace ItemsViewer
                             sizeViewTopChild = 1 - ScrollOffset;
                             PanelOffset = 0 - sizeTopChild * ScrollOffset;
                             height += PanelOffset;
+                            System.Diagnostics.Debug.WriteLine(ScrollOffset);
                         }
                     }
                 }
