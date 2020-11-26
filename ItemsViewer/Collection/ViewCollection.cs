@@ -179,7 +179,7 @@ namespace ItemsViewer.Collection
                 //if (collection.Dropped)
                 {
                     level++;
-                    if (collection is INotifyCollectionChanged collectionChanged)
+                    if (isAdd && collection is INotifyCollectionChanged collectionChanged)
                         collectionChanged.CollectionChanged += CollectionChanged_CollectionChanged;
                     //сборка коллекций последующих уровней
                     if (Sort.SortType == SortProperties.SortTypes.None && !Filter.Any)

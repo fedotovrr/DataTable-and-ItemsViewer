@@ -40,6 +40,14 @@ namespace ItemsViewer
 
         public event EventHandler ItemsSourceChanged;
 
+        public double VerticalScrollValue { get => ItemsVSB.Value; set { if (ItemsVSB.Value != value) { ItemsVSB.Value = value; Refresh(); } } }
+
+        public double HorizontalScrollValue { get => ItemsHSB.Value; set { if (ItemsHSB.Value != value) { ItemsHSB.Value = value; RefreshHScroll(); } } }
+
+        public event ScrollEventHandler VerticalScroll;
+
+        public event ScrollEventHandler HorizontalScroll;
+
         public bool HorizontalScrollable { get => ContentContainer?.Orientation == Orientation.Horizontal; set { if (ContentContainer == null) return; if (value) { ContentContainer.Orientation = Orientation.Horizontal; ItemsHSB.Visibility = Visibility.Visible; } else { ContentContainer.Orientation = Orientation.Vertical; ItemsHSB.Visibility = Visibility.Collapsed; } Refresh(); } }
 
         public DataTemplate ItemTemplate
@@ -245,6 +253,8 @@ namespace ItemsViewer
                 ItemsHSB.ViewportSize = width;
                 ItemsHSB.Maximum = 0;
             }
+
+            HorizontalScroll?.Invoke(this, new ScrollEventArgs(ScrollEventType.ThumbTrack, ItemsHSB.Value));
         }
 
         internal void Refresh()
@@ -403,6 +413,7 @@ namespace ItemsViewer
                 RefreshHScroll();
 
                 ViewRefreshed?.Invoke(this, new EventArgs());
+                VerticalScroll?.Invoke(this, new ScrollEventArgs(ScrollEventType.ThumbTrack, ItemsVSB.Value));
             }
         }
 

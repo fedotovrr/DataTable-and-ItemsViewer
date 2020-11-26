@@ -180,14 +180,16 @@ namespace ItemsViewer
         {
             int count = InfoCollection.Count;
             for (int i = 0; i < count; i++)
-                InfoCollection.GetViewItem(i).Selected = true;
+                if (InfoCollection.GetViewItem(i) is ViewItem item)
+                    item.Selected = true;
         }
 
         private void UnselectAll()
         {
             int count = InfoCollection.Count;
             for (int i = 0; i < count; i++)
-                InfoCollection.GetViewItem(i).Selected = false;
+                if (InfoCollection.GetViewItem(i) is ViewItem item)
+                    item.Selected = false;
         }
 
         private void SelectRange(int startIndex, int endIndex)
@@ -200,7 +202,8 @@ namespace ItemsViewer
                 endIndex = t;
             }
             for (int i = startIndex; i <= endIndex; i++)
-                InfoCollection.GetViewItem(i).Selected = true;
+                if (InfoCollection.GetViewItem(i) is ViewItem item)
+                    item.Selected = true;
         }
 
         public List<T> GetSelectList<T>(out int level)

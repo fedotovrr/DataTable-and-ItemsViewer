@@ -287,6 +287,7 @@ namespace DataTable
                 }
                 else
                 {
+                    level = 1;
                     for (int i = 0; i < tableArr.Length; i++)
                     {
                         object obj = Activator.CreateInstance(itemType); ;
