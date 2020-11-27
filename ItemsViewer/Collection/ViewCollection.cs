@@ -13,6 +13,7 @@ namespace ItemsViewer.Collection
         private List<ViewItem> InfoCollection;
         internal CollectionContainer SourceContainer;
         private bool IsSelectable;
+        private object LockChange = new object();
 
         public event NotifyCollectionChangedEventHandler CollectionChanged;
 
@@ -32,11 +33,14 @@ namespace ItemsViewer.Collection
 
         public ViewCollection(object collection)
         {
-            SourceContainer = new CollectionContainer(collection);
-            Sort = new SortProperties(this);
-            Filter = new FilterManager(this);
-            AddEventBySource();
-            RefreshInfoCollection();
+            lock (LockChange)
+            {
+                SourceContainer = new CollectionContainer(collection);
+                Sort = new SortProperties(this);
+                Filter = new FilterManager(this);
+                AddEventBySource();
+                RefreshInfoCollection();
+            }
         }
 
 
@@ -62,46 +66,65 @@ namespace ItemsViewer.Collection
 
         public int CheckIndex(int index)
         {
-            int count = this.Count;
-            return index < 0 ? 0 : index < count ? index : count - 1;
+            int r = 0;
+            lock (LockChange)
+            {
+                int count = this.Count;
+                r = index < 0 ? 0 : index < count ? index : count - 1;
+            }
+            return r;
         }
 
         public object GetItem(int index)
         {
-            if (InfoCollection == null) return SourceContainer[index];
-            ViewItem item = InfoCollection[index];
-            return item == null ? null : item.Source;
+            object r = null;
+            lock (LockChange)
+                r = InfoCollection == null ? SourceContainer[index] : InfoCollection[index]?.Source;
+            return r;
         }
 
         public ViewItem GetViewItem(int index)
         {
-            return InfoCollection == null ? SourceContainer[index] as ViewItem : InfoCollection[index];
+            ViewItem r = null;
+            lock (LockChange)
+                r = InfoCollection == null ? SourceContainer[index] as ViewItem : InfoCollection[index];
+            return r;
         }
 
         public ViewItem GetViewItemOrDefault(int index)
         {
-            return index >= 0 && index < Count ? GetViewItem(index) : null;
+            ViewItem r = null;
+            lock (LockChange)
+                r = index >= 0 && index < Count ? GetViewItem(index) : null;
+            return r;
         }
 
         public List<UndoRedoManager.RemoveCommand> Remove(List<object> items, bool isUndoRedo)
         {
             if (items == null || items.Count == 0) return null;
-            RemoveEventByItems();
-            RemoveEventBySource();
-            List<UndoRedoManager.RemoveCommand> commands = SourceContainer.Remove(items, isUndoRedo);
-            AddEventBySource();
-            CollectionChanged_CollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, items));
+            List<UndoRedoManager.RemoveCommand> commands = null;
+            lock (LockChange)
+            {
+                RemoveEventByItems();
+                RemoveEventBySource();
+                commands = SourceContainer.Remove(items, isUndoRedo);
+                AddEventBySource();
+                CollectionChanged_CollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, items));
+            }
             return commands;
         }
 
         public void Insert(int index, List<object> items)
         {
             if (items == null || items.Count == 0) return;
-            RemoveEventByItems();
-            RemoveEventBySource();
-            SourceContainer.Insert(index, items);
-            AddEventBySource();
-            CollectionChanged_CollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, items));
+            lock (LockChange)
+            {
+                RemoveEventByItems();
+                RemoveEventBySource();
+                SourceContainer.Insert(index, items);
+                AddEventBySource();
+                CollectionChanged_CollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, items));
+            }
         }
 
         public void CollectionChanged_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
@@ -112,35 +135,38 @@ namespace ItemsViewer.Collection
 
         public void RefreshInfoCollection()
         {
-            RemoveEventByItems();
-            InfoCollection = null;
-            int count = SourceContainer.Count;
-            if (SourceItemsIsIChildCollection || Sort.SortType != SortProperties.SortTypes.None || Filter.Any)
+            lock (LockChange)
             {
-                InfoCollection = new List<ViewItem>(count);
-                //сборка коллекции первого уровня
-                if (Sort.SortType == SortProperties.SortTypes.None && !Filter.Any)
-                    for (int i = 0; i < count; i++)
-                        CreateInfoCollection(SourceContainer[i], 1, null, true);
-                else
+                RemoveEventByItems();
+                InfoCollection = null;
+                int count = SourceContainer.Count;
+                if (SourceItemsIsIChildCollection || Sort.SortType != SortProperties.SortTypes.None || Filter.Any)
                 {
-                    Tuple<object, CellInfo[]>[] items = new Tuple<object, CellInfo[]>[count];
-                    for (int i = 0; i < count; i++)
-                        if (SourceContainer[i] is object obj && obj is ITableRow row && row.GetRowInfo() is CellInfo[] cells)
-                            items[i] = new Tuple<object, CellInfo[]>(obj, cells);
-                    //фильтрация коллекции первого уровня
-                    if (Filter.Any)
-                        items = items.Where(x => Filter.CheckRow(x.Item2)).ToArray();
-                    //сортировка коллекции первого уровня
-                    if (Sort.SortType != SortProperties.SortTypes.None && Sort.Column >= 0)
-                        Array.Sort(items, 0, items.Length, Sort.GetComparer());
-                    for (int i = 0; i < items.Length; i++)
-                        CreateInfoCollection(items[i]?.Item1, 1, null, true);
+                    InfoCollection = new List<ViewItem>(count);
+                    //сборка коллекции первого уровня
+                    if (Sort.SortType == SortProperties.SortTypes.None && !Filter.Any)
+                        for (int i = 0; i < count; i++)
+                            CreateInfoCollection(SourceContainer[i], 1, null, true);
+                    else
+                    {
+                        Tuple<object, CellInfo[]>[] items = new Tuple<object, CellInfo[]>[count];
+                        for (int i = 0; i < count; i++)
+                            if (SourceContainer[i] is object obj && obj is ITableRow row && row.GetRowInfo() is CellInfo[] cells)
+                                items[i] = new Tuple<object, CellInfo[]>(obj, cells);
+                        //фильтрация коллекции первого уровня
+                        if (Filter.Any)
+                            items = items.Where(x => Filter.CheckRow(x.Item2)).ToArray();
+                        //сортировка коллекции первого уровня
+                        if (Sort.SortType != SortProperties.SortTypes.None && Sort.Column >= 0)
+                            Array.Sort(items, 0, items.Length, Sort.GetComparer());
+                        for (int i = 0; i < items.Length; i++)
+                            CreateInfoCollection(items[i]?.Item1, 1, null, true);
+                    }
                 }
+                if (IsSelectable)
+                    CreateSelectable();
+                GC.Collect();
             }
-            if (IsSelectable)
-                CreateSelectable();
-            GC.Collect();
         }
 
         public void CreateSelectable()
