@@ -26,7 +26,7 @@ namespace DataTable.Header
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return value is FilterManager.ColumnGetter getter && getter.IsFilterColumnContains(Column) ? Source.IconColor : Source.EnabledIconColor;
+            return value is FilterManager.ColumnGetter getter && getter.Contains(Column) ? Source.IconColor : Source.EnabledIconColor;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

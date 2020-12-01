@@ -9,34 +9,33 @@ using System.Runtime.CompilerServices;
 using DataTable;
 using DataTable.Header;
 using System.Collections.Specialized;
+using System.Collections;
 
 namespace ItemsViewer.Collection
 {
-    internal class FilterManager : INotifyPropertyChanged
+    internal class FilterManager : INotifyPropertyChanged, INotifyCollectionChanged
     {
         private ViewCollection Source;
 
         public event PropertyChangedEventHandler PropertyChanged;
+        public event NotifyCollectionChangedEventHandler CollectionChanged;
 
         private List<FilterItem> Filters = new List<FilterItem>();
 
-        public ColumnGetter Column { get; private set; }
+        public ColumnGetter Columns { get; private set; }
 
         public bool Any => Filters.Count > 0;
-
+        
         internal FilterManager(ViewCollection source)
         {
             Source = source;
-            Column = new ColumnGetter(this);
+            Columns = new ColumnGetter(this);
         }
 
-        public bool CheckRow(CellInfo[] cells)
+        public bool IsVisibleRow(CellInfo[] cells)
         {
-            foreach (FilterItem item in Filters.Where(x => x.IsUser))
-                if (item.Column >= 0 && item.Column < cells.Length && Contains(cells[item.Column].Value, item.Value))
-                    return true;
-            foreach (FilterItem item in Filters.Where(x => !x.IsUser))
-                if (item.Column >= 0 && item.Column < cells.Length && cells[item.Column].Value == item.Value)
+            foreach (FilterItem item in Filters)
+                if (item.IsChecked && item.Column >= 0 && item.Column < cells.Length && !Contains(cells[item.Column].Value, item.Value))
                     return false;
             return true;
         }
@@ -48,14 +47,45 @@ namespace ItemsViewer.Collection
             return source.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
-        public void Refresh(IEnumerable<FilterItem> items, int column)
+        public bool Add(FilterItem item)
         {
-            Filters = Filters.Where(x => x.Column != column).ToList();
+            if (Filters.FirstOrDefault(x => x.Equals(item)) == null)
+            {
+                Filters.Add(item);
+                item.PropertyChanged += Item_PropertyChanged;
+                CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, new List<FilterItem> { item }));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Columns)));
+                Source.CollectionChanged_CollectionChanged(Source, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset, null));
+                return true;
+            }
+            return false;
+        }
+
+        private void Item_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(FilterItem.IsChecked))
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Columns)));
+                Source.CollectionChanged_CollectionChanged(Source, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset, null));
+            }
+        }
+
+        public bool Remove(IList items)
+        {
+            bool change = false;
             foreach (FilterItem item in items)
-                if ((item.IsUser ? item.IsChecked : !item.IsChecked) && Filters.FirstOrDefault(x => x.Column == item.Column && x.IsUser == item.IsUser && x.Value == item.Value) == null)
-                    Filters.Add(item);
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Column)));
-            Source.CollectionChanged_CollectionChanged(Source, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset, null));
+                if (Filters.Remove(item))
+                {
+                    change = true;
+                    item.PropertyChanged -= Item_PropertyChanged;
+                }
+            if (change)
+            {
+                CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, items));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Columns)));
+                Source.CollectionChanged_CollectionChanged(Source, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset, null));
+            }
+            return change;
         }
 
         public List<FilterItem> GetItems(int column)
@@ -72,9 +102,9 @@ namespace ItemsViewer.Collection
                 Source = source;
             }
 
-            public bool IsFilterColumnContains(int column)
+            public bool Contains(int column)
             {
-                return Source.Filters.FirstOrDefault(x => x.Column == column) != null;
+                return Source.Filters.FirstOrDefault(x => x.IsChecked && x.Column == column) != null;
             }
         }
     }

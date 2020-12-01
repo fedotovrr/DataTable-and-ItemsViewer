@@ -68,7 +68,7 @@ namespace DataTable.Header
 
             //иконка фильтра
             Path filterIcon = new Path() { Margin = new Thickness(3, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center, Data = Geometry.Parse("M 0,0 14,0 9,5 9,12 5,10 5,5"), ToolTip = cn == "ru-RU" ? "Визуальный фильтр" : "Visual filter" };
-            filterIcon.SetBinding(Path.FillProperty, new Binding(nameof(FilterManager.Column)) { Converter = new FilterBrushConverter(Parent, column), Source = Parent.ItemsCollection?.Filter });
+            filterIcon.SetBinding(Path.FillProperty, new Binding(nameof(FilterManager.Columns)) { Converter = new FilterBrushConverter(Parent, column), Source = Parent.ItemsCollection?.Filter });
 
             Border filterBorder = new Border() { Width = 20, Background = new SolidColorBrush(new Color()), Cursor = Cursors.Hand };
             filterBorder.SetBinding(Path.VisibilityProperty, new Binding(nameof(Table.TryFilter)) { Converter = new BooleanToVisibilityConverter(), Source = Parent });
@@ -96,7 +96,7 @@ namespace DataTable.Header
             FrameworkElementFactory itemFactory = new FrameworkElementFactory(typeof(CheckBox));
             itemFactory.SetValue(CheckBox.FocusVisualStyleProperty, null);
             itemFactory.SetBinding(CheckBox.ContentProperty, new Binding(nameof(FilterItem.Value)));
-            itemFactory.SetBinding(CheckBox.IsCheckedProperty, new Binding(nameof(FilterItem.IsChecked)));
+            itemFactory.SetBinding(CheckBox.IsCheckedProperty, new Binding(nameof(FilterItem.IsChecked)) { Mode = BindingMode.TwoWay });
             itemFactory.AddHandler(CheckBox.CheckedEvent, new RoutedEventHandler(Item_Checked));
             itemFactory.AddHandler(CheckBox.UncheckedEvent, new RoutedEventHandler(Item_Checked));
 
@@ -163,23 +163,19 @@ namespace DataTable.Header
 
         private void ButtonFilter_Click(object sender, RoutedEventArgs e)
         {
-            if (Parent.ItemsCollection == null)
-                return;
             e.Handled = true;
             Parent?.EndEdit(true);
+            RefreshFilterCollection();
+        }
+
+        private void RefreshFilterCollection()
+        {
+            if (Parent.ItemsCollection == null)
+                return;
             filterPopup.Width = Width + 1;
             filterPopup.IsOpen = true;
             FilterItems.Clear();
             List<FilterItem> newItems = Parent.ItemsCollection.Filter.GetItems(Column);
-            int count = Parent.ItemsCollection.Count;
-            List<string> items = new List<string>(count);
-            for (int i = 0; i < count; i++)
-                if (Parent.ItemsCollection.GetItem(i) is ITableRow row && row.GetRowInfo() is CellInfo[] cells && Column < cells.Length)
-                    items.Add(cells[Column].Value);
-            items = items.Distinct().ToList();
-            foreach (string item in items)
-                if (newItems.FirstOrDefault(x => x.Value == item) == null)
-                    newItems.Add(new FilterItem(item, Column));
             newItems.Sort(new SortProperties.NaturalStringComparer<FilterItem>(x => x.Value));
             for (int i = 0; i < newItems.Count; i++)
                 FilterItems.Add(newItems[i]);
@@ -196,20 +192,21 @@ namespace DataTable.Header
             else if (e.Key == Key.Delete)
             {
                 e.Handled = true;
-                if ((itemsControl.SelectedItems as ObservableCollection<object>)?.Select(x => x as FilterItem)?.ToList() is List<FilterItem> items)
-                    foreach (FilterItem item in items)
-                        if (item.IsUser)
-                            FilterItems.Remove(item);
+                if (Parent.ItemsCollection.Filter.Remove(itemsControl.SelectedItems))
+                    RefreshFilterCollection();
             }
         }
 
         private void AddValue_Click(object sender, RoutedEventArgs e)
         {
-            if (newFilterText.Text is string av && !String.IsNullOrWhiteSpace(av) && FilterItems.FirstOrDefault(x => x.IsUser && x.Value == av) == null)
+            if (newFilterText.Text is string av && !String.IsNullOrWhiteSpace(av))
             {
                 FilterItem ni = new FilterItem(newFilterText.Text, Column, true);
-                FilterItems.Add(ni);
-                itemsControl.ScrollIntoView(ni);
+                if (Parent.ItemsCollection.Filter.Add(ni))
+                {
+                    RefreshFilterCollection();
+                    itemsControl.ScrollIntoView(ni);
+                }
             }
             newFilterText.Text = null;
         }
@@ -227,7 +224,7 @@ namespace DataTable.Header
 
         private void FilterPopup_Closed(object sender, EventArgs e)
         {
-            Parent?.ItemsCollection?.Filter.Refresh(FilterItems, Column);
+            //Parent?.ItemsCollection?.Filter.Refresh(FilterItems, Column);
         }
 
         private void ButtonSort_Click(object sender, RoutedEventArgs e)

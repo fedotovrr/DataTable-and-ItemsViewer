@@ -28,6 +28,11 @@ namespace DataTable.Header
             IsUser = isUser;
         }
 
+        public bool Equals(FilterItem item)
+        {
+            return IsUser == item.IsUser && Column == item.Column && Value == item.Value;
+        }
+
         public void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

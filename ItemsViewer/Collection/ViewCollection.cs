@@ -155,7 +155,7 @@ namespace ItemsViewer.Collection
                                 items[i] = new Tuple<object, CellInfo[]>(obj, cells);
                         //фильтрация коллекции первого уровня
                         if (Filter.Any)
-                            items = items.Where(x => Filter.CheckRow(x.Item2)).ToArray();
+                            items = items.Where(x => Filter.IsVisibleRow(x.Item2)).ToArray();
                         //сортировка коллекции первого уровня
                         if (Sort.SortType != SortProperties.SortTypes.None && Sort.Column >= 0)
                             Array.Sort(items, 0, items.Length, Sort.GetComparer());
@@ -219,7 +219,7 @@ namespace ItemsViewer.Collection
                                 items[i] = new Tuple<object, CellInfo[]>(obj, cells);
                         //фильтрация коллекций последующих уровней
                         if (Filter.Any)
-                            items = items.Where(x => Filter.CheckRow(x.Item2)).ToArray();
+                            items = items.Where(x => Filter.IsVisibleRow(x.Item2)).ToArray();
                         //сортировка коллекций последующих уровней
                         if (Sort.SortType != SortProperties.SortTypes.None && Sort.Column >= 0)
                             Array.Sort(items, 0, items.Length, Sort.GetComparer());
