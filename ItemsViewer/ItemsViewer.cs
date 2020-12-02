@@ -465,8 +465,8 @@ namespace ItemsViewer
                     defaultItem.InitSelctable();
                 if (itemControl.DataContext is INotifyPropertyChanged oldViewChanged)
                     oldViewChanged.PropertyChanged -= Item_PropertyChanged;
-                if (viewItem is INotifyPropertyChanged ciewChanged)
-                    ciewChanged.PropertyChanged += Item_PropertyChanged;
+                if (viewItem is INotifyPropertyChanged viewChanged)
+                    viewChanged.PropertyChanged += Item_PropertyChanged;
                 itemControl.DataContext = viewItem;
             }
 
@@ -500,9 +500,16 @@ namespace ItemsViewer
                 {
                     itemControl.MouseDown -= Child_MouseDown;
                     itemControl.MouseUp -= Child_MouseUp;
+                    if (itemControl.DataContext is INotifyPropertyChanged viewChanged)
+                        viewChanged.PropertyChanged -= Item_PropertyChanged;
                     itemControl.DataContext = null;
                     if (TypeManager.GetChildOfType<ContentPresenter>(itemControl) is FrameworkElement presenther)
+                    {
+                        if (presenther.DataContext is INotifyPropertyChanged presentherChanged)
+                            presentherChanged.PropertyChanged -= Item_PropertyChanged;
                         presenther.DataContext = null;
+                    }
+                    itemControl.ContextMenu = null;
                 }
             ItemsPanel.Children.Clear();
             Refresh();

@@ -142,6 +142,7 @@ namespace ItemsViewer.Collection
                 int count = SourceContainer.Count;
                 if (SourceItemsIsIChildCollection || Sort.SortType != SortProperties.SortTypes.None || Filter.Any)
                 {
+                    ClearInfoCollection();
                     InfoCollection = new List<ViewItem>(count);
                     //сборка коллекции первого уровня
                     if (Sort.SortType == SortProperties.SortTypes.None && !Filter.Any)
@@ -183,6 +184,7 @@ namespace ItemsViewer.Collection
             else
             {
                 int count = SourceContainer.Count;
+                ClearInfoCollection();
                 InfoCollection = new List<ViewItem>(count);
                 for (int i = 0; i < count; i++)
                     InfoCollection.Add(new ViewItem { Index = i, Source = SourceContainer[i] });
@@ -235,11 +237,21 @@ namespace ItemsViewer.Collection
         {
             RemoveEventByItems();
             RemoveEventBySource();
-            InfoCollection?.Clear();
+            ClearInfoCollection();
             SourceContainer?.Dispose();
             Sort?.Dispose();
             SourceContainer = null;
             GC.Collect();
+        }
+
+        private void ClearInfoCollection()
+        {
+            if (InfoCollection != null && InfoCollection.Any())
+            {
+                foreach (ViewItem item in InfoCollection)
+                    item.Source = null;
+                InfoCollection.Clear();
+            }
         }
     }
 }
