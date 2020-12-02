@@ -34,10 +34,22 @@ namespace ItemsViewer.Collection
 
         public bool IsVisibleRow(CellInfo[] cells)
         {
-            foreach (FilterItem item in Filters)
-                if (item.IsChecked && item.Column >= 0 && item.Column < cells.Length && !Contains(cells[item.Column].Value, item.Value))
-                    return false;
-            return true;
+            List<bool> checkList = new List<bool>();
+            for (int i = 0; i < cells.Length; i++)
+            {
+                bool checkColumn = true;
+                foreach (FilterItem item in Filters.Where(x => x.IsChecked && x.Column == i))
+                {
+                    checkColumn = false;
+                    if (Contains(cells[item.Column].Value, item.Value))
+                    {
+                        checkColumn = true;
+                        break;
+                    }
+                }
+                checkList.Add(checkColumn);
+            }
+            return !checkList.Contains(false);
         }
 
         private bool Contains(string source, string value)

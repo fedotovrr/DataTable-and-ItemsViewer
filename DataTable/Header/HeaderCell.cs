@@ -80,6 +80,7 @@ namespace DataTable.Header
             headerPanelText.SetBinding(TextBlock.ForegroundProperty, new Binding(nameof(Table.HeaderForeground)) { Source = Parent });
 
             newFilterText = new TextBox();
+            newFilterText.KeyDown += NewFilterText_KeyDown;
             Button addValue = new Button() { Content = cn == "ru-RU" ? "Добавить" : "Add", Width = 70, Margin = new Thickness(4,0,0,0) };
             Grid.SetColumn(addValue, 1);
             addValue.Click += AddValue_Click;
@@ -93,12 +94,25 @@ namespace DataTable.Header
             Border separator = new Border() { Height = 1, Background = Parent.BordersBrush, Margin = new Thickness(0, 4, 0, 4) };
             Grid.SetRow(separator, 2);
 
-            FrameworkElementFactory itemFactory = new FrameworkElementFactory(typeof(CheckBox));
-            itemFactory.SetValue(CheckBox.FocusVisualStyleProperty, null);
-            itemFactory.SetBinding(CheckBox.ContentProperty, new Binding(nameof(FilterItem.Value)));
-            itemFactory.SetBinding(CheckBox.IsCheckedProperty, new Binding(nameof(FilterItem.IsChecked)) { Mode = BindingMode.TwoWay });
-            itemFactory.AddHandler(CheckBox.CheckedEvent, new RoutedEventHandler(Item_Checked));
-            itemFactory.AddHandler(CheckBox.UncheckedEvent, new RoutedEventHandler(Item_Checked));
+            FrameworkElementFactory boxFactory = new FrameworkElementFactory(typeof(CheckBox));
+            boxFactory.SetValue(CheckBox.FocusVisualStyleProperty, null);
+            boxFactory.SetValue(CheckBox.VerticalAlignmentProperty, VerticalAlignment.Center);
+            boxFactory.SetBinding(CheckBox.IsCheckedProperty, new Binding(nameof(FilterItem.IsChecked)) { Mode = BindingMode.TwoWay });
+            boxFactory.AddHandler(CheckBox.CheckedEvent, new RoutedEventHandler(Item_Checked));
+            boxFactory.AddHandler(CheckBox.UncheckedEvent, new RoutedEventHandler(Item_Checked));
+            FrameworkElementFactory itemFactory = new FrameworkElementFactory(typeof(Grid));
+            FrameworkElementFactory textFactory = new FrameworkElementFactory(typeof(TextBlock));
+            textFactory.SetBinding(TextBlock.TextProperty, new Binding(nameof(FilterItem.Value)));
+            textFactory.SetValue(Grid.ColumnProperty, 1);
+            textFactory.SetValue(TextBlock.VerticalAlignmentProperty, VerticalAlignment.Center);
+            FrameworkElementFactory column1 = new FrameworkElementFactory(typeof(ColumnDefinition));
+            column1.SetValue(ColumnDefinition.WidthProperty, new GridLength(1, GridUnitType.Auto));
+            FrameworkElementFactory column2 = new FrameworkElementFactory(typeof(ColumnDefinition));
+            column2.SetValue(ColumnDefinition.WidthProperty, new GridLength(1, GridUnitType.Star));
+            itemFactory.AppendChild(column1);
+            itemFactory.AppendChild(column2);
+            itemFactory.AppendChild(boxFactory);
+            itemFactory.AppendChild(textFactory);
 
             itemsControl = new ListView() { BorderThickness = new Thickness(0), Background = Brushes.Transparent, FocusVisualStyle = null };
             itemsControl.ItemTemplate = new DataTemplate() { DataType = typeof(CheckBox) };
@@ -180,6 +194,15 @@ namespace DataTable.Header
             for (int i = 0; i < newItems.Count; i++)
                 FilterItems.Add(newItems[i]);
             itemsControl.Focus();
+        }
+
+        private void NewFilterText_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                e.Handled = true;
+                AddValue_Click(null, null);
+            }
         }
 
         private void FilterPopup_PreviewKeyDown(object sender, KeyEventArgs e)
